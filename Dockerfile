@@ -10,9 +10,6 @@ FROM alpine
 COPY --from=builder /build/main /
 WORKDIR /run
 
-RUN addgroup --system caddy
-RUN adduser --system caddy --ingroup caddy
-
-USER caddy:caddy
+USER 997:997
 
 CMD ["../main"]
