@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/codemicro/rubrum/rubrum/internal/config"
-	"github.com/codemicro/rubrum/rubrum/internal/httpsrv"
+	"github.com/codemicro/palmatum/palmatum/internal/config"
+	"github.com/codemicro/palmatum/palmatum/internal/httpsrv"
 	"golang.org/x/exp/slog"
 	"net/http"
 	"os"

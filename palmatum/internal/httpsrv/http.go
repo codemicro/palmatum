@@ -1,7 +1,7 @@
 package httpsrv
 
 import (
-	"github.com/codemicro/rubrum/rubrum/internal/config"
+	"github.com/codemicro/palmatum/palmatum/internal/config"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"strings"
