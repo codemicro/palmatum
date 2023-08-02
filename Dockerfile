@@ -10,4 +10,6 @@ FROM alpine
 COPY --from=builder /build/main /
 WORKDIR /run
 
+USER caddy
+
 CMD ["../main"]
