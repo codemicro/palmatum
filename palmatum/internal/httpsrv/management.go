@@ -5,17 +5,13 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"github.com/julienschmidt/httprouter"
 	"html/template"
 	"io"
 	"net/http"
 	"os"
 	"path"
 	"regexp"
-	"time"
-
-	"github.com/codemicro/palmatum/palmatum/internal/datastore"
-	"github.com/julienschmidt/httprouter"
-	"golang.org/x/exp/slog"
 )
 
 //go:embed managementIndex.html
@@ -34,20 +30,13 @@ func (ro *routes) managementIndex(w http.ResponseWriter, _ *http.Request, _ http
 		panic(fmt.Errorf("reading sites directory contents: %w", err))
 	}
 
-	var sites []*datastore.SiteData
+	var sites []string
 	for _, de := range dirEntries {
-		dat := new(datastore.SiteData)
-		if err := ro.datastore.Get(de.Name(), dat); err != nil {
-			if !errors.Is(err, datastore.ErrNotFound) {
-				slog.Warn("failed to read datastore", "site", de.Name(), "err", err)
-			}
-			dat.Name = de.Name()
-		}
-		sites = append(sites, dat)
+		sites = append(sites, de.Name())
 	}
 
 	var templateArgs = struct {
-		ActiveSites []*datastore.SiteData
+		ActiveSites []string
 	}{
 		ActiveSites: sites,
 	}
@@ -157,15 +146,6 @@ func (ro *routes) uploadSite(w http.ResponseWriter, r *http.Request, _ httproute
 	// Move temporary directory to new directory
 	if err := os.Rename(tempDir, permPath); err != nil {
 		panic(fmt.Errorf("renaming temporary directory: %w", err))
-	}
-
-	// Write details to datastore
-	if err := ro.datastore.Put(siteName, &datastore.SiteData{
-		Name:           siteName,
-		LastModified:   time.Now().UTC(),
-		LastModifiedBy: r.Header.Get("X-authentik-username"),
-	}); err != nil {
-		slog.Warn("failed to write site data to datastore", "err", err)
 	}
 
 	if IsBrowser(r) {
