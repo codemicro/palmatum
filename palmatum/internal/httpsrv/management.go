@@ -162,7 +162,6 @@ func (ro *routes) uploadSite(w http.ResponseWriter, r *http.Request, _ httproute
 	// Write details to datastore
 	var lastModifiedBy string
 	{
-		fmt.Printf("%#v\n", r.Header)
 		x := r.Header["X-authentik-username"]
 		if len(x) != 0 {
 			lastModifiedBy = x[0]
