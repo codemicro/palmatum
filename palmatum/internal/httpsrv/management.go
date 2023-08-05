@@ -160,17 +160,10 @@ func (ro *routes) uploadSite(w http.ResponseWriter, r *http.Request, _ httproute
 	}
 
 	// Write details to datastore
-	var lastModifiedBy string
-	{
-		x := r.Header["X-authentik-username"]
-		if len(x) != 0 {
-			lastModifiedBy = x[0]
-		}
-	}
 	if err := ro.datastore.Put(siteName, &datastore.SiteData{
 		Name:           siteName,
 		LastModified:   time.Now().UTC(),
-		LastModifiedBy: lastModifiedBy,
+		LastModifiedBy: r.Header.Get("X-authentik-username"),
 	}); err != nil {
 		slog.Warn("failed to write site data to datastore", "err", err)
 	}
