@@ -10,7 +10,7 @@ type HTTP struct {
 }
 
 type Database struct {
-	DSN string
+	StoreFilename string
 }
 
 type Platform struct {
@@ -38,7 +38,7 @@ func Load() (*Config, error) {
 			Port: asInt(cl.withDefault("http.port", 8080)),
 		},
 		Database: &Database{
-			DSN: asString(cl.withDefault("database.dsn", "website.db")),
+			StoreFilename: asString(cl.withDefault("database.filename", "data.json")),
 		},
 		Platform: &Platform{
 			SitesDirectory:         asString(cl.required("platform.sitesDirectory")),

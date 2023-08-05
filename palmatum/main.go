@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/codemicro/palmatum/palmatum/internal/config"
-	"github.com/codemicro/palmatum/palmatum/internal/httpsrv"
-	"golang.org/x/exp/slog"
 	"net/http"
 	"os"
+
+	"github.com/codemicro/palmatum/palmatum/internal/config"
+	"github.com/codemicro/palmatum/palmatum/internal/datastore"
+	"github.com/codemicro/palmatum/palmatum/internal/httpsrv"
+	"golang.org/x/exp/slog"
 )
 
 func main() {
@@ -23,7 +25,9 @@ func run() error {
 
 	_ = os.MkdirAll(conf.Platform.SitesDirectory, 0777)
 
-	handler, err := httpsrv.New(conf)
+	ds := datastore.New(conf.Database.StoreFilename)
+
+	handler, err := httpsrv.New(conf, ds)
 	if err != nil {
 		return fmt.Errorf("creating HTTP handler: %w", err)
 	}

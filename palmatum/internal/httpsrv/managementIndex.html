@@ -10,7 +10,7 @@
 <h1>Palmatum Management Portal</h1>
 <h2>Active sites</h2>
 <ul>
-    {{ range $name := .ActiveSites }}<li><a href="/{{ $name }}">{{ $name }}</a> <a href="" hx-post="/-/delete" hx-vals='{"siteName": "{{ $name }}"}' hx-confirm="Are you sure you want to delete '{{ $name }}'?">[x]</a></li>{{ else }}<li><i>No active sites</i></li>{{ end }}
+    {{ range $data := .ActiveSites }}<li><a href="/{{ $data.Name }}">{{ $data.Name }}</a> <a href="" hx-post="/-/delete" hx-vals='{"siteName": "{{ $data.Name }}"}' hx-confirm="Are you sure you want to delete '{{ $data.Name }}'?">[x]</a>{{ if not $data.LastModified.IsZero }}<i> updated {{ $data.LastModified.Format "Jan 02, 2006 15:04:05 UTC" }}{{ if ne $data.LastModifiedBy "" }} by {{ $data.LastModifiedBy }}{{ end }}</i>{{ end }}</li>{{ else }}<li><i>No active sites</i></li>{{ end }}
 </ul>
 <h2>Upload new site bundle</h2>
 <form action="/-/upload" method="post" enctype="multipart/form-data">
