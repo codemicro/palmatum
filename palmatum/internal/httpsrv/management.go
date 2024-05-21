@@ -95,26 +95,19 @@ func (ro *routes) uploadSite(w http.ResponseWriter, r *http.Request, _ httproute
 	defer os.RemoveAll(tempDir) // by the time this runs we should have copied the directory to its final place but this
 
 	// Extract ZIP file contents
-	// 1st iteration: create directories (files where name ends in a `/`)
-	// 2nd iteration: copy files
-	for _, file := range zipfileReader.File {
-		if file.Name[len(file.Name)-1] != '/' {
-			continue
-		}
-
-		newPath := path.Join(tempDir, file.Name)
-
-		err := os.Mkdir(newPath, 0777)
-		if err != nil {
-			panic(fmt.Errorf("creating directory %s during archive unpacking: %w", newPath, err))
-		}
-	}
 	for _, file := range zipfileReader.File {
 		if file.Name[len(file.Name)-1] == '/' {
 			continue
 		}
 
 		newPath := path.Join(tempDir, file.Name)
+		dir := path.Dir(newPath)
+
+		if _, err := os.Stat(dir); err != nil && errors.Is(err, os.ErrNotExist) {
+			if err := os.MkdirAll(dir, 0777); err != nil {
+				panic(fmt.Errorf("creating directory %s during archive unpacking: %w", dir, err))
+			}
+		}
 
 		fh, err := os.OpenFile(newPath, os.O_WRONLY|os.O_CREATE, 0777)
 		if err != nil {
