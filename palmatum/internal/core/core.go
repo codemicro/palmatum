@@ -3,6 +3,7 @@ package core
 import (
 	"github.com/codemicro/palmatum/palmatum/internal/config"
 	"github.com/jmoiron/sqlx"
+	"path"
 )
 
 type Core struct {
@@ -15,4 +16,8 @@ func New(c *config.Config, db *sqlx.DB) *Core {
 		Config:   c,
 		Database: db,
 	}
+}
+
+func (c *Core) getPathOnDisk(p string) string {
+	return path.Join(c.Config.Platform.SitesDirectory, p)
 }

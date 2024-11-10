@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"io"
 	"os"
-	"path"
 )
 
 func (c *Core) IngestSiteArchive(archive io.Reader) (string, error) {
@@ -22,7 +21,7 @@ func (c *Core) IngestSiteArchive(archive io.Reader) (string, error) {
 		key = uuid.New()
 		fname = fmt.Sprintf("%s.zip", key)
 
-		f, err := os.OpenFile(path.Join(c.Config.Platform.SitesDirectory, fname), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
+		f, err := os.OpenFile(c.getPathOnDisk(fname), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 		if err != nil {
 			if errors.Is(err, os.ErrExist) {
 				continue

@@ -15,7 +15,7 @@ type SiteModel struct {
 
 func GetSite(db sqlx.Queryer, slug string) (*SiteModel, error) {
 	res := new(SiteModel)
-	if err := db.QueryRowx(`SELECT "slug", "content_path" from sites WHERE "slug" = ?`, slug).Scan(res); err != nil {
+	if err := db.QueryRowx(`SELECT "slug", "content_path" from sites WHERE "slug" = ?`, slug).StructScan(res); err != nil {
 		return nil, err
 	}
 	return res, nil
