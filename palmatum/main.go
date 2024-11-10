@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codemicro/palmatum/palmatum/internal/config"
+	"github.com/codemicro/palmatum/palmatum/internal/database"
 	"github.com/codemicro/palmatum/palmatum/internal/httpsrv"
 	"golang.org/x/exp/slog"
 	"net/http"
@@ -20,6 +21,12 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("load config on startup: %w", err)
 	}
+
+	db, err := database.New(conf.Database.DSN)
+	if err != nil {
+		return fmt.Errorf("create database: %w", err)
+	}
+	_ = db
 
 	_ = os.MkdirAll(conf.Platform.SitesDirectory, 0777)
 
