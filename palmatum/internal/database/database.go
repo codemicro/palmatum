@@ -35,7 +35,6 @@ func New(fname string) (*sqlx.DB, error) {
 		case 0:
 			_, err = db.Exec(`CREATE TABLE sites(
 				"slug" varchar not null primary key,
-				"name" varchar not null,
 				"content_path" varchar not null
 			)`)
 			if err != nil {
@@ -45,7 +44,7 @@ func New(fname string) (*sqlx.DB, error) {
 			_, err = db.Exec(`CREATE TABLE routes(
     			"site" varchar not null,
 				"domain" varchar not null,
-				"path" varchar,
+				"path" varchar default '',
 				foreign key (site) references sites(slug)
 			)`)
 			if err != nil {

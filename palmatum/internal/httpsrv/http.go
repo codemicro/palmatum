@@ -2,14 +2,16 @@ package httpsrv
 
 import (
 	"github.com/codemicro/palmatum/palmatum/internal/config"
+	"github.com/codemicro/palmatum/palmatum/internal/core"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"strings"
 )
 
-func New(conf *config.Config) (http.Handler, error) {
+func New(conf *config.Config, c *core.Core) (http.Handler, error) {
 	r := &routes{
 		config: conf,
+		core:   c,
 	}
 
 	router := httprouter.New()
@@ -23,6 +25,7 @@ func New(conf *config.Config) (http.Handler, error) {
 
 type routes struct {
 	config *config.Config
+	core   *core.Core
 }
 
 func BadRequestResponse(w http.ResponseWriter, message ...string) error {

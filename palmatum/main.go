@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codemicro/palmatum/palmatum/internal/config"
+	"github.com/codemicro/palmatum/palmatum/internal/core"
 	"github.com/codemicro/palmatum/palmatum/internal/database"
 	"github.com/codemicro/palmatum/palmatum/internal/httpsrv"
 	"golang.org/x/exp/slog"
@@ -12,7 +13,8 @@ import (
 
 func main() {
 	if err := run(); err != nil {
-		return
+		slog.Error("unhandled error", "error", err)
+		os.Exit(1)
 	}
 }
 
@@ -30,7 +32,7 @@ func run() error {
 
 	_ = os.MkdirAll(conf.Platform.SitesDirectory, 0777)
 
-	handler, err := httpsrv.New(conf)
+	handler, err := httpsrv.New(conf, core.New(conf, db))
 	if err != nil {
 		return fmt.Errorf("creating HTTP handler: %w", err)
 	}
