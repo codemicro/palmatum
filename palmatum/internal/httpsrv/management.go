@@ -16,7 +16,7 @@ import (
 )
 
 func NewManagementServer(args ServerArgs) *http.Server {
-	return newServer(args, fmt.Sprintf("%s:%d", args.Config.HTTP.Host, args.Config.HTTP.Port), New(args.Config, args.Core))
+	return newServer(args, args.Config.HTTP.ManagementAddress, New(args.Config, args.Core))
 }
 
 func New(conf *config.Config, c *core.Core) http.Handler {

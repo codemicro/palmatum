@@ -5,8 +5,8 @@ import (
 )
 
 type HTTP struct {
-	Host string
-	Port int
+	ManagementAddress string
+	SitesAddress      string
 }
 
 type Database struct {
@@ -34,8 +34,8 @@ func Load() (*Config, error) {
 	conf := &Config{
 		Debug: cl.Get("debug").WithDefault(false).AsBool(),
 		HTTP: &HTTP{
-			Host: cl.Get("http.host").WithDefault("127.0.0.1").AsString(),
-			Port: cl.Get("http.port").WithDefault(8080).AsInt(),
+			ManagementAddress: cl.Get("http.managementAddress").WithDefault("127.0.0.1:8080").AsString(),
+			SitesAddress:      cl.Get("http.sitesAddress").WithDefault("127.0.0.1:8081").AsString(),
 		},
 		Database: &Database{
 			DSN: cl.Get("database.dsn").WithDefault("palmatum.db").AsString(),
