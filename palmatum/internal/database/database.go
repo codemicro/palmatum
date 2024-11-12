@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/codemicro/palmatum/palmatum/internal/config"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 const programSchemaVersion = 1
 
-func New(fname string) (*sqlx.DB, error) {
-	db, err := sqlx.Connect("sqlite3", fname)
+func New(conf *config.Config) (*sqlx.DB, error) {
+	db, err := sqlx.Connect("sqlite3", conf.Database.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
 	}

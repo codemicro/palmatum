@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"github.com/codemicro/palmatum/palmatum/internal/config"
+	"github.com/codemicro/palmatum/palmatum/internal/core"
 	"github.com/codemicro/palmatum/palmatum/internal/database"
 	"github.com/julienschmidt/httprouter"
 	"html/template"
@@ -12,6 +14,30 @@ import (
 	"path"
 	"regexp"
 )
+
+func NewManagementServer(args ServerArgs) *http.Server {
+	return newServer(args, fmt.Sprintf("%s:%d", args.Config.HTTP.Host, args.Config.HTTP.Port), New(args.Config, args.Core))
+}
+
+func New(conf *config.Config, c *core.Core) http.Handler {
+	r := &routes{
+		config: conf,
+		core:   c,
+	}
+
+	router := httprouter.New()
+
+	router.GET("/-/", r.managementIndex)
+	router.POST("/-/upload", r.uploadSite)
+	router.POST("/-/delete", r.deleteSite)
+
+	return router
+}
+
+type routes struct {
+	config *config.Config
+	core   *core.Core
+}
 
 //go:embed managementIndex.html
 var managementPageTemplateSource string

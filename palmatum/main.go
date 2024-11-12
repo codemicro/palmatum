@@ -1,49 +1,67 @@
 package main
 
 import (
-	"fmt"
 	"github.com/codemicro/palmatum/palmatum/internal/config"
 	"github.com/codemicro/palmatum/palmatum/internal/core"
 	"github.com/codemicro/palmatum/palmatum/internal/database"
 	"github.com/codemicro/palmatum/palmatum/internal/httpsrv"
+	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 	"log/slog"
 	"net/http"
 	"os"
 )
 
 func main() {
-	if err := run(); err != nil {
-		slog.Error("unhandled error", "error", err)
-		os.Exit(1)
-	}
+	fx.New(
+		fx.Provide(provideLogger),
+		fx.WithLogger(provideFxLogger),
+
+		fx.Provide(
+			config.Load,
+			// TODO: add a graceful shutdown to the database
+			database.New,
+			core.New,
+
+			fx.Annotate(
+				httpsrv.NewManagementServer,
+				fx.ResultTags(`group:"servers"`),
+			),
+
+			fx.Annotate(
+				httpsrv.NewSitesServer,
+				fx.ResultTags(`group:"servers"`),
+			),
+		),
+
+		fx.Invoke(
+			func(conf *config.Config) {
+				_ = os.MkdirAll(conf.Platform.SitesDirectory, 0777)
+			},
+			fx.Annotate(
+				func([]*http.Server) {},
+				fx.ParamTags(`group:"servers"`),
+			),
+		),
+	).Run()
 }
 
-func run() error {
-	conf, err := config.Load()
-	if err != nil {
-		return fmt.Errorf("load config on startup: %w", err)
+func provideLogger(conf *config.Config) *slog.Logger {
+	level := new(slog.LevelVar)
+	l := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level}))
+
+	if conf.Debug {
+		level.Set(slog.LevelDebug)
+		l.Debug("debug mode enabled")
 	}
 
-	db, err := database.New(conf.Database.DSN)
-	if err != nil {
-		return fmt.Errorf("create database: %w", err)
+	return l
+}
+
+func provideFxLogger(l *slog.Logger) fxevent.Logger {
+	fxel := &fxevent.SlogLogger{
+		Logger: l.With("area", "fx"),
 	}
-	_ = db
-
-	_ = os.MkdirAll(conf.Platform.SitesDirectory, 0777)
-
-	handler, err := httpsrv.New(conf, core.New(conf, db))
-	if err != nil {
-		return fmt.Errorf("creating HTTP handler: %w", err)
-	}
-
-	host := fmt.Sprintf("%s:%d", conf.HTTP.Host, conf.HTTP.Port)
-	slog.Info("http server alive", "host", host)
-
-	err = http.ListenAndServe(host, handler)
-	if err != nil {
-		return fmt.Errorf("serving HTTP: %w", err)
-	}
-
-	return nil
+	fxel.UseLogLevel(slog.LevelDebug)
+	return fxel
 }

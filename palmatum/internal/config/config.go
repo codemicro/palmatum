@@ -2,7 +2,6 @@ package config
 
 import (
 	"go.akpain.net/cfger"
-	"log/slog"
 )
 
 type HTTP struct {
@@ -45,10 +44,6 @@ func Load() (*Config, error) {
 			SitesDirectory:         cl.Get("platform.sitesDirectory").Required().AsString(),
 			MaxUploadSizeMegabytes: cl.Get("platform.maxUploadSizeMegabytes").WithDefault(512).AsInt(),
 		},
-	}
-
-	if conf.Debug {
-		slog.Debug("debug mode enabled")
 	}
 
 	return conf, nil
