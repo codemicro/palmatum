@@ -6,7 +6,7 @@ import (
 	"github.com/codemicro/palmatum/palmatum/internal/core"
 	"github.com/codemicro/palmatum/palmatum/internal/database"
 	"github.com/codemicro/palmatum/palmatum/internal/httpsrv"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 	"os"
 )

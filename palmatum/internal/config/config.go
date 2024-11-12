@@ -2,7 +2,7 @@ package config
 
 import (
 	"go.akpain.net/cfger"
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 type HTTP struct {
