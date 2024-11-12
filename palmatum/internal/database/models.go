@@ -51,7 +51,7 @@ func GetSitesWithRoutes(db sqlx.Queryer) ([]*SiteModel, error) {
 	}
 
 	var routes []*RouteModel
-	if err := sqlx.Select(db, &routes, "SELECT site, domain, path FROM routes"); err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err := sqlx.Select(db, &routes, "SELECT id, site, domain, path FROM routes"); err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 
@@ -63,7 +63,21 @@ func GetSitesWithRoutes(db sqlx.Queryer) ([]*SiteModel, error) {
 }
 
 type RouteModel struct {
+	ID     int    `db:"id"`
 	Site   string `db:"site"`
 	Domain string `db:"domain"`
 	Path   string `db:"path"`
+}
+
+func InsertRoute(db sqlx.Ext, route *RouteModel) error {
+	q, v, err := sqlx.Named(`INSERT INTO routes("site", "domain", path) VALUES(:site, :domain, :path) RETURNING id`, route)
+	if err != nil {
+		return err
+	}
+	return db.QueryRowx(q, v...).Scan(&route.ID)
+}
+
+func DeleteRoute(db sqlx.Ext, route *RouteModel) error {
+	_, err := sqlx.NamedExec(db, `DELETE FROM routes WHERE id = :id`, route)
+	return err
 }

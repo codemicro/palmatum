@@ -42,10 +42,13 @@ func New(fname string) (*sqlx.DB, error) {
 			}
 
 			_, err = db.Exec(`CREATE TABLE routes(
+    			"id" integer primary key autoincrement,
     			"site" varchar not null,
 				"domain" varchar not null,
 				"path" varchar default '',
-				foreign key (site) references sites(slug)
+				
+				foreign key (site) references sites(slug),
+				unique (domain, path)
 			)`)
 			if err != nil {
 				return nil, fmt.Errorf("create routes table: %w", err)
