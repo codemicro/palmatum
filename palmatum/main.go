@@ -19,7 +19,6 @@ func main() {
 
 		fx.Provide(
 			config.Load,
-			// TODO: add a graceful shutdown to the database
 			database.New,
 			core.New,
 
