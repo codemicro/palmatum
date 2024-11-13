@@ -10,6 +10,8 @@ import (
 
 func (c *Core) UpsertSite(sm *database.SiteModel) error {
 
+	// TODO: trash all of this :(
+
 	// NOTE TO FUTURE SELF: LOCK BEFORE YOU BEGIN A TRANSACTION. :)
 
 	tx, err := c.Database.Beginx()
