@@ -9,6 +9,7 @@ import (
 	"github.com/codemicro/palmatum/palmatum/internal/database"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -23,6 +24,8 @@ func NewManagementServer(args ServerArgs) *http.Server {
 	mux.HandleFunc("POST /api/site", handleErrors(args.Logger, mr.apiCreateSite))
 	mux.HandleFunc("POST /api/site/bundle", handleErrors(args.Logger, mr.apiUploadSiteBundle))
 	mux.HandleFunc("DELETE /api/site", handleErrors(args.Logger, mr.apiDeleteSite))
+	mux.HandleFunc("POST /api/site/route", handleErrors(args.Logger, mr.apiCreateRoute))
+	mux.HandleFunc("DELETE /api/site/route", handleErrors(args.Logger, mr.apiDeleteRoute))
 
 	return newServer(args, args.Config.HTTP.ManagementAddress, mux)
 }
@@ -44,7 +47,8 @@ func (mr *managementRoutes) apiCreateSite(rw http.ResponseWriter, rq *http.Reque
 
 	_, err := mr.core.CreateSite(siteSlug)
 	if err != nil {
-		if errors.Is(err, core.ErrInvalidSlug) || errors.Is(err, core.ErrDuplicateSlug) {
+		var e *core.Error
+		if errors.As(err, &e) {
 			_ = badRequestResponse(rw, err.Error())
 			return nil
 		}
@@ -115,6 +119,40 @@ func (mr *managementRoutes) apiUploadSiteBundle(rw http.ResponseWriter, rq *http
 		ContentPath: contentPath,
 	}); err != nil {
 		return fmt.Errorf("update site: %w", err)
+	}
+
+	rw.WriteHeader(http.StatusOK)
+	return nil
+}
+
+func (mr *managementRoutes) apiCreateRoute(rw http.ResponseWriter, rq *http.Request) error {
+	siteSlug := rq.FormValue("slug")
+	domain := rq.FormValue("domain")
+	path := rq.FormValue("path")
+
+	_, err := mr.core.CreateRoute(siteSlug, domain, path)
+	if err != nil {
+		var e *core.Error
+		if errors.As(err, &e) {
+			_ = badRequestResponse(rw, err.Error())
+			return nil
+		}
+		return fmt.Errorf("create new route: %w", err)
+	}
+
+	rw.WriteHeader(http.StatusCreated)
+	return nil
+}
+
+func (mr *managementRoutes) apiDeleteRoute(rw http.ResponseWriter, rq *http.Request) error {
+	routeIDStr := rq.FormValue("id")
+	routeID, err := strconv.Atoi(routeIDStr)
+	if err == nil {
+		_ = badRequestResponse(rw, "invalid route ID")
+	}
+
+	if err := mr.core.DeleteRoute(routeID); err != nil {
+		return fmt.Errorf("delete route: %w", err)
 	}
 
 	rw.WriteHeader(http.StatusOK)
