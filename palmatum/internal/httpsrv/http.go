@@ -45,13 +45,13 @@ func newServer(args ServerArgs, addr string, handler http.Handler) *http.Server 
 	return server
 }
 
-func BadRequestResponse(w http.ResponseWriter, message ...string) error {
+func badRequestResponse(rw http.ResponseWriter, msg ...string) error {
 	outputMessage := "Bad Request"
-	if len(message) != 0 {
-		outputMessage = message[0]
+	if len(msg) != 0 {
+		outputMessage = msg[0]
 	}
-	w.WriteHeader(400)
-	_, err := w.Write([]byte(outputMessage))
+	rw.WriteHeader(400)
+	_, err := rw.Write([]byte(outputMessage))
 	return err
 }
 
@@ -70,4 +70,16 @@ func IsBrowser(r *http.Request) bool {
 		}
 	}
 	return false
+}
+
+type handlerWithError func(http.ResponseWriter, *http.Request) error
+
+func handleErrors(logger *slog.Logger, he handlerWithError) http.HandlerFunc {
+	return func(rw http.ResponseWriter, rq *http.Request) {
+		if err := he(rw, rq); err != nil {
+			logger.Error("unhandled http error", "url", rq.URL, "error", err)
+			rw.WriteHeader(http.StatusInternalServerError)
+			_, _ = rw.Write([]byte("Internal Server Error"))
+		}
+	}
 }

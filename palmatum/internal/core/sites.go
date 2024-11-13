@@ -5,56 +5,54 @@ import (
 	"fmt"
 	"github.com/codemicro/palmatum/palmatum/internal/database"
 	"github.com/mattn/go-sqlite3"
-	"os"
+	"regexp"
 )
 
-func (c *Core) UpsertSite(sm *database.SiteModel) error {
+var (
+	ErrDuplicateSlug = errors.New("slug in use")
+	ErrInvalidSlug   = errors.New("invalid slug")
 
-	// TODO: trash all of this :(
+	SiteSlugValidationRegexp = regexp.MustCompile(`^([\w\-.~!$&'()*+,;=:@]{2,})$`)
+)
 
-	// NOTE TO FUTURE SELF: LOCK BEFORE YOU BEGIN A TRANSACTION. :)
-
-	tx, err := c.Database.Beginx()
-	if err != nil {
-		return fmt.Errorf("begin transaction: %w", err)
-	}
-	defer tx.Rollback()
-
-	if err := database.InsertSite(tx, sm); err != nil {
-		var e sqlite3.Error
-		if errors.As(err, &e) && e.Code == sqlite3.ErrConstraint {
-			goto exists
-		}
-		return fmt.Errorf("insert site: %w", err)
-	}
-
-	// TODO: rebuild routing graph here
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: %w", err)
+func ValidateSiteSlug(s string) error {
+	if !SiteSlugValidationRegexp.MatchString(s) {
+		return ErrInvalidSlug
 	}
 	return nil
+}
 
-exists:
-	existingSite, err := database.GetSite(tx, sm.Slug)
+func (c *Core) CreateSite(siteSlug string) (*database.SiteModel, error) {
+	if err := ValidateSiteSlug(siteSlug); err != nil {
+		return nil, err
+	}
+
+	_, err := c.Database.Exec(`INSERT INTO sites(slug) VALUES (?)`, siteSlug)
 	if err != nil {
-		return fmt.Errorf("get existing site: %w", err)
-	}
-
-	if err := database.UpdateSite(tx, sm); err != nil {
-		return fmt.Errorf("update site: %w", err)
-	}
-
-	// TODO: rebuild routing graph here
-
-	if sm.ContentPath != existingSite.ContentPath {
-		if err := os.Remove(c.getPathOnDisk(existingSite.ContentPath)); err != nil {
-			return fmt.Errorf("remove old site content path: %w", err)
+		var e sqlite3.Error
+		if errors.As(err, &e) && e.Code == sqlite3.ErrConstraint {
+			return nil, ErrDuplicateSlug
 		}
+		return nil, fmt.Errorf("call database: %w", err)
 	}
 
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: %w", err)
+	return &database.SiteModel{
+		Slug: siteSlug,
+	}, nil
+}
+
+func (c *Core) DeleteSite(siteSlug string) error {
+	_, err := c.Database.Exec(`DELETE FROM sites WHERE slug = ?`, siteSlug)
+	if err != nil {
+		return fmt.Errorf("call database: %w", err)
+	}
+	return nil
+}
+
+func (c *Core) UpdateSite(s *database.SiteModel) error {
+	_, err := c.Database.Exec(`UPDATE sites SET content_path=? WHERE slug = ?`, s.ContentPath, s.Slug)
+	if err != nil {
+		return fmt.Errorf("call database: %w", err)
 	}
 	return nil
 }

@@ -27,10 +27,10 @@ func main() {
 				fx.ResultTags(`group:"servers"`),
 			),
 
-			fx.Annotate(
-				httpsrv.NewSitesServer,
-				fx.ResultTags(`group:"servers"`),
-			),
+			//fx.Annotate(
+			//	httpsrv.NewSitesServer,
+			//	fx.ResultTags(`group:"servers"`),
+			//),
 		),
 
 		fx.Invoke(

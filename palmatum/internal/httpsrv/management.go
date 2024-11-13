@@ -7,131 +7,116 @@ import (
 	"github.com/codemicro/palmatum/palmatum/internal/config"
 	"github.com/codemicro/palmatum/palmatum/internal/core"
 	"github.com/codemicro/palmatum/palmatum/internal/database"
-	"github.com/julienschmidt/httprouter"
-	"html/template"
+	"log/slog"
 	"net/http"
-	"os"
-	"path"
-	"regexp"
+	"strings"
 )
 
 func NewManagementServer(args ServerArgs) *http.Server {
-	return newServer(args, args.Config.HTTP.ManagementAddress, New(args.Config, args.Core))
-}
-
-func New(conf *config.Config, c *core.Core) http.Handler {
-	r := &routes{
-		config: conf,
-		core:   c,
+	mux := http.NewServeMux()
+	mr := managementRoutes{
+		logger: args.Logger,
+		core:   args.Core,
+		config: args.Config,
 	}
 
-	router := httprouter.New()
+	mux.HandleFunc("POST /api/site", handleErrors(args.Logger, mr.apiCreateSite))
+	mux.HandleFunc("POST /api/site/bundle", handleErrors(args.Logger, mr.apiUploadSiteBundle))
+	mux.HandleFunc("DELETE /api/site", handleErrors(args.Logger, mr.apiDeleteSite))
 
-	router.GET("/-/", r.managementIndex)
-	router.POST("/-/upload", r.uploadSite)
-	router.POST("/-/delete", r.deleteSite)
-
-	return router
+	return newServer(args, args.Config.HTTP.ManagementAddress, mux)
 }
 
-type routes struct {
-	config *config.Config
+type managementRoutes struct {
+	logger *slog.Logger
 	core   *core.Core
+	config *config.Config
 }
 
-//go:embed managementIndex.html
-var managementPageTemplateSource string
-var managementPageTemplate *template.Template
+func (mr *managementRoutes) apiCreateSite(rw http.ResponseWriter, rq *http.Request) error {
+	siteSlug := rq.FormValue("slug")
+	siteSlug = strings.TrimSpace(siteSlug)
 
-func init() {
-	managementPageTemplate = template.New("management page")
-	template.Must(managementPageTemplate.Parse(managementPageTemplateSource))
-}
+	if len(siteSlug) == 0 {
+		_ = badRequestResponse(rw, "Invalid slug (cannot be an empty string)")
+		return nil
+	}
 
-func (ro *routes) managementIndex(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-
-	dirEntries, err := os.ReadDir(ro.config.Platform.SitesDirectory)
+	_, err := mr.core.CreateSite(siteSlug)
 	if err != nil {
-		panic(fmt.Errorf("reading sites directory contents: %w", err))
+		if errors.Is(err, core.ErrInvalidSlug) || errors.Is(err, core.ErrDuplicateSlug) {
+			_ = badRequestResponse(rw, err.Error())
+			return nil
+		}
+		return fmt.Errorf("create new site: %w", err)
 	}
 
-	var sites []string
-	for _, de := range dirEntries {
-		sites = append(sites, de.Name())
-	}
-
-	var templateArgs = struct {
-		ActiveSites []string
-	}{
-		ActiveSites: sites,
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	if err := managementPageTemplate.Execute(w, templateArgs); err != nil {
-		panic(fmt.Errorf("rendering management page: %w", err))
-	}
+	rw.WriteHeader(http.StatusCreated)
+	return nil
 }
 
-var siteNameValidationRegexp = regexp.MustCompile(`^([\w\-.~!$&'()*+,;=:@]{2,})|(-[\w\-.~!$&'()*+,;=:@]+)$`)
+func (mr *managementRoutes) apiDeleteSite(rw http.ResponseWriter, rq *http.Request) error {
+	siteSlug := rq.FormValue("slug")
+	siteSlug = strings.TrimSpace(siteSlug)
 
-func (ro *routes) uploadSite(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	siteName := r.FormValue("siteName")
-	if siteName == "" {
-		_ = BadRequestResponse(w, "missing site name")
-		return
+	if len(siteSlug) == 0 {
+		_ = badRequestResponse(rw, "Invalid slug (cannot be an empty string)")
+		return nil
 	}
 
-	if !siteNameValidationRegexp.MatchString(siteName) {
-		_ = BadRequestResponse(w, "invalid site name")
-		return
+	if err := mr.core.DeleteSite(siteSlug); err != nil {
+		return fmt.Errorf("delete site: %w", err)
 	}
 
-	formFile, formFileHeader, err := r.FormFile("archive")
+	rw.WriteHeader(http.StatusOK)
+	return nil
+}
+
+func (mr *managementRoutes) apiUploadSiteBundle(rw http.ResponseWriter, rq *http.Request) error {
+	siteSlug := strings.TrimSpace(rq.FormValue("slug"))
+	if siteSlug == "" {
+		_ = badRequestResponse(rw, "Missing slug")
+		return nil
+	}
+
+	if err := core.ValidateSiteSlug(siteSlug); err != nil {
+		_ = badRequestResponse(rw, err.Error())
+		return nil
+	}
+
+	formFile, formFileHeader, err := rq.FormFile("bundle")
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
-			_ = BadRequestResponse(w, "missing archive file")
-			return
+			_ = badRequestResponse(rw, "missing bundle file")
+			return nil
 		}
 		if err.Error() == "request Content-Type isn't multipart/form-data" {
-			_ = BadRequestResponse(w, "request Content-Type isn't multipart/form-data")
-			return
+			_ = badRequestResponse(rw, "request Content-Type isn't multipart/form-data")
+			return nil
 		}
 		panic(fmt.Errorf("loading archive request parameter: %w", err))
 	}
 	defer formFile.Close()
 
-	if formFileHeader.Size > 1000*1000*int64(ro.config.Platform.MaxUploadSizeMegabytes) {
-		_ = BadRequestResponse(w, fmt.Sprintf("archive too large (maximum size %dMB)", ro.config.Platform.MaxUploadSizeMegabytes))
-		return
+	if formFileHeader.Size > 1000*1000*int64(mr.config.Platform.MaxUploadSizeMegabytes) {
+		_ = badRequestResponse(rw, fmt.Sprintf("archive too large (maximum size %dMB)", mr.config.Platform.MaxUploadSizeMegabytes))
+		return nil
 	}
 
-	contentPath, err := ro.core.IngestSiteArchive(formFile)
+	contentPath, err := mr.core.IngestSiteArchive(formFile)
 	if err != nil {
-		panic(fmt.Errorf("ingesting site archive: %w", err))
+		return fmt.Errorf("ingest site archive site archive: %w", err)
 	}
 
-	if err := ro.core.UpsertSite(&database.SiteModel{
-		Slug:        siteName,
+	_ = contentPath
+
+	if err := mr.core.UpdateSite(&database.SiteModel{
+		Slug:        siteSlug,
 		ContentPath: contentPath,
 	}); err != nil {
-		panic(fmt.Errorf("updating site in database: %w", err))
+		return fmt.Errorf("update site: %w", err)
 	}
 
-	if IsBrowser(r) {
-		w.Header().Add("Location", "/-/")
-		w.WriteHeader(303) // 303 See Other - resets the method to GET
-	} else {
-		w.WriteHeader(204)
-	}
-}
-
-func (ro *routes) deleteSite(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	siteName := r.FormValue("siteName")
-	if !siteNameValidationRegexp.MatchString(siteName) {
-		_ = BadRequestResponse(w, "invalid site name")
-		return
-	}
-	_ = os.RemoveAll(path.Join(ro.config.Platform.SitesDirectory, siteName))
-	w.Header().Set("HX-Refresh", "true")
-	w.WriteHeader(204)
+	rw.WriteHeader(http.StatusOK)
+	return nil
 }

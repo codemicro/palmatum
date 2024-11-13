@@ -39,8 +39,8 @@ func New(lc fx.Lifecycle, conf *config.Config) (*sqlx.DB, error) {
 				switch currentSchemaVersion {
 				case 0:
 					_, err = db.Exec(`CREATE TABLE sites(
-						"slug" varchar not null primary key,
-						"content_path" varchar not null
+						"slug" varchar primary key,
+						"content_path" varchar default ''
 					)`)
 					if err != nil {
 						return fmt.Errorf("create sites table: %w", err)
