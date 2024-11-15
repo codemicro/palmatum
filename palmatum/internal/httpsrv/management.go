@@ -27,6 +27,8 @@ func NewManagementServer(args ServerArgs) *http.Server {
 	mux.HandleFunc("POST /api/site/route", handleErrors(args.Logger, mr.apiCreateRoute))
 	mux.HandleFunc("DELETE /api/site/route", handleErrors(args.Logger, mr.apiDeleteRoute))
 
+	mux.HandleFunc("GET /{$}", handleErrors(args.Logger, mr.index))
+
 	return newServer(args, args.Config.HTTP.ManagementAddress, mux)
 }
 
@@ -34,6 +36,11 @@ type managementRoutes struct {
 	logger *slog.Logger
 	core   *core.Core
 	config *config.Config
+}
+
+func (mr *managementRoutes) index(rw http.ResponseWriter, rq *http.Request) error {
+	rw.Write([]byte("hello!"))
+	return nil
 }
 
 func (mr *managementRoutes) apiCreateSite(rw http.ResponseWriter, rq *http.Request) error {
