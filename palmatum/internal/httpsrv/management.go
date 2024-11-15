@@ -126,9 +126,13 @@ func (mr *managementRoutes) apiUploadSiteBundle(rw http.ResponseWriter, rq *http
 }
 
 func (mr *managementRoutes) apiCreateRoute(rw http.ResponseWriter, rq *http.Request) error {
+	// TODO: check the route in question actually exist
+
 	siteSlug := rq.FormValue("slug")
 	domain := rq.FormValue("domain")
 	path := rq.FormValue("path")
+
+	mr.logger.Debug("create route", "slug", siteSlug, "domain", domain, "path", path)
 
 	_, err := mr.core.CreateRoute(siteSlug, domain, path)
 	if err != nil {
@@ -147,8 +151,9 @@ func (mr *managementRoutes) apiCreateRoute(rw http.ResponseWriter, rq *http.Requ
 func (mr *managementRoutes) apiDeleteRoute(rw http.ResponseWriter, rq *http.Request) error {
 	routeIDStr := rq.FormValue("id")
 	routeID, err := strconv.Atoi(routeIDStr)
-	if err == nil {
+	if err != nil {
 		_ = badRequestResponse(rw, "invalid route ID")
+		return nil
 	}
 
 	if err := mr.core.DeleteRoute(routeID); err != nil {

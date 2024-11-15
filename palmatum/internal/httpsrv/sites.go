@@ -5,9 +5,7 @@ import (
 )
 
 func NewSitesServer(args ServerArgs) *http.Server {
-	// TODO: serve sites
-	return newServer(args, args.Config.HTTP.SitesAddress, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(500)
-		w.Write([]byte("not implemented"))
+	return newServer(args, args.Config.HTTP.SitesAddress, http.HandlerFunc(func(rw http.ResponseWriter, rq *http.Request) {
+		args.Core.RouteRequest(rq).ServeHTTP(rw, rq)
 	}))
 }

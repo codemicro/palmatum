@@ -50,7 +50,7 @@ func New(lc fx.Lifecycle, conf *config.Config) (*sqlx.DB, error) {
 						"id" integer primary key autoincrement,
 						"site" varchar not null,
 						"domain" varchar not null,
-						"path" varchar default '',
+						"path" varchar default '/',
 						
 						foreign key (site) references sites(slug),
 						unique (domain, path)

@@ -82,6 +82,10 @@ func (c *Core) DeleteSite(siteSlug string) error {
 		return fmt.Errorf("remove path: %w", err)
 	}
 
+	if err := c.BuildKnownRoutes(); err != nil {
+		return fmt.Errorf("rebuild known routes: %w", err)
+	}
+
 	return nil
 }
 
@@ -95,6 +99,7 @@ func (c *Core) UpdateSite(s *database.SiteModel) error {
 
 var (
 	ErrInvalidDomain  = newError("invalid domain")
+	ErrInvalidPath    = newError("invalid path")
 	ErrRouteNotUnique = newError("route is not unique")
 )
 
@@ -103,6 +108,12 @@ func (c *Core) CreateRoute(siteSlug, domain, path string) (*database.RouteModel,
 
 	if domain == "" {
 		return nil, ErrInvalidDomain
+	}
+
+	if len(path) != 0 {
+		if path[0] != '/' {
+			return nil, ErrInvalidPath
+		}
 	}
 
 	var id int
@@ -120,6 +131,10 @@ func (c *Core) CreateRoute(siteSlug, domain, path string) (*database.RouteModel,
 		return nil, fmt.Errorf("call database: %w", err)
 	}
 
+	if err := c.BuildKnownRoutes(); err != nil {
+		return nil, fmt.Errorf("rebuild known routes: %w", err)
+	}
+
 	return &database.RouteModel{
 		ID:     id,
 		Site:   siteSlug,
@@ -133,5 +148,10 @@ func (c *Core) DeleteRoute(id int) error {
 	if err != nil {
 		return fmt.Errorf("call database: %w", err)
 	}
+
+	if err := c.BuildKnownRoutes(); err != nil {
+		return fmt.Errorf("rebuild known routes: %w", err)
+	}
+
 	return nil
 }
