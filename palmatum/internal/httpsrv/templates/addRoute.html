@@ -1,0 +1,13 @@
+<div>
+    <a href="/">[go back]</a>
+    <h2>Add route to {{ . }}</h2>
+    <form hx-post="/api/site/route" hx-vals='{"slug": "{{ js . }}"}'>
+        <label for="domainBox">Domain*: </label>
+        <input type="text" name="domain" id="domainBox">
+        <br>
+        <label for="pathBox">Path: </label>
+        <input type="text" name="path" placeholder="/" id="pathBox">
+        <br>
+        <input type="submit" value="Save">
+    </form>
+</div>

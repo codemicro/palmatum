@@ -7,19 +7,25 @@ import (
 	"github.com/codemicro/palmatum/palmatum/internal/config"
 	"github.com/codemicro/palmatum/palmatum/internal/core"
 	"github.com/codemicro/palmatum/palmatum/internal/database"
+	"go.uber.org/fx"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
-func NewManagementServer(args ServerArgs) *http.Server {
+func NewManagementServer(lc fx.Lifecycle, args ServerArgs) *http.Server {
 	mux := http.NewServeMux()
 	mr := managementRoutes{
 		logger: args.Logger,
 		core:   args.Core,
 		config: args.Config,
 	}
+
+	lc.Append(fx.Hook{
+		OnStart: mr.initManagementTemplates,
+	})
 
 	mux.HandleFunc("POST /api/site", handleErrors(args.Logger, mr.apiCreateSite))
 	mux.HandleFunc("POST /api/site/bundle", handleErrors(args.Logger, mr.apiUploadSiteBundle))
@@ -28,6 +34,8 @@ func NewManagementServer(args ServerArgs) *http.Server {
 	mux.HandleFunc("DELETE /api/site/route", handleErrors(args.Logger, mr.apiDeleteRoute))
 
 	mux.HandleFunc("GET /{$}", handleErrors(args.Logger, mr.index))
+	mux.HandleFunc("GET /uploadSite", handleErrors(args.Logger, mr.uploadSitePartial))
+	mux.HandleFunc("GET /addRoute", handleErrors(args.Logger, mr.addRoutePartial))
 
 	return newServer(args, args.Config.HTTP.ManagementAddress, mux)
 }
@@ -36,11 +44,8 @@ type managementRoutes struct {
 	logger *slog.Logger
 	core   *core.Core
 	config *config.Config
-}
 
-func (mr *managementRoutes) index(rw http.ResponseWriter, rq *http.Request) error {
-	rw.Write([]byte("hello!"))
-	return nil
+	templates *template.Template
 }
 
 func (mr *managementRoutes) apiCreateSite(rw http.ResponseWriter, rq *http.Request) error {
@@ -62,6 +67,7 @@ func (mr *managementRoutes) apiCreateSite(rw http.ResponseWriter, rq *http.Reque
 		return fmt.Errorf("create new site: %w", err)
 	}
 
+	rw.Header().Set("HX-Refresh", "true")
 	rw.WriteHeader(http.StatusCreated)
 	return nil
 }
@@ -79,6 +85,7 @@ func (mr *managementRoutes) apiDeleteSite(rw http.ResponseWriter, rq *http.Reque
 		return fmt.Errorf("delete site: %w", err)
 	}
 
+	rw.Header().Set("HX-Refresh", "true")
 	rw.WriteHeader(http.StatusOK)
 	return nil
 }
@@ -128,13 +135,12 @@ func (mr *managementRoutes) apiUploadSiteBundle(rw http.ResponseWriter, rq *http
 		return fmt.Errorf("update site: %w", err)
 	}
 
+	rw.Header().Set("HX-Refresh", "true")
 	rw.WriteHeader(http.StatusOK)
 	return nil
 }
 
 func (mr *managementRoutes) apiCreateRoute(rw http.ResponseWriter, rq *http.Request) error {
-	// TODO: check the route in question actually exist
-
 	siteSlug := rq.FormValue("slug")
 	domain := rq.FormValue("domain")
 	path := rq.FormValue("path")
@@ -151,6 +157,7 @@ func (mr *managementRoutes) apiCreateRoute(rw http.ResponseWriter, rq *http.Requ
 		return fmt.Errorf("create new route: %w", err)
 	}
 
+	rw.Header().Set("HX-Refresh", "true")
 	rw.WriteHeader(http.StatusCreated)
 	return nil
 }
@@ -167,6 +174,7 @@ func (mr *managementRoutes) apiDeleteRoute(rw http.ResponseWriter, rq *http.Requ
 		return fmt.Errorf("delete route: %w", err)
 	}
 
+	rw.Header().Set("HX-Refresh", "true")
 	rw.WriteHeader(http.StatusOK)
 	return nil
 }

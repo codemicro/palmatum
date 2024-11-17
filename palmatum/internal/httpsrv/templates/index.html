@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palmatum management portal</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.tedted.dev/neat/neat.css">
+    <script src="https://unpkg.com/htmx.org@1.9.4" defer></script>
+    <script defer>
+        document.addEventListener("htmx:responseError", (evt) => {
+            alert(`${evt.detail.xhr.statusText} - ${evt.detail.xhr.responseText}`)
+        })
+    </script>
+</head>
+<body hx-encoding="multipart/form-data">
+<h1>Palmatum Management Portal</h1>
+<div id="swapBox">
+    <h2>Active sites</h2>
+    <ul>
+        {{ range .Sites }}
+        <li>{{ .Slug }}
+            <a hx-delete="/api/site" hx-vals='{"slug": "{{ js .Slug }}"}' hx-confirm="Are you sure you want to delete {{ js .Slug }}?" href="">[delete]</a>
+            <a hx-get="/uploadSite" hx-vals='{"slug": "{{ js .Slug }}"}' hx-target="#swapBox" hx-swap="outerHTML" href="">[upload]</a>
+            {{ if eq .ContentPath "" }}<span style="color: red; font-style: italic;">no site uploaded</span>{{ end }}
+            <ul>
+                {{ range .Routes }}
+                    <li><a href="//{{ .Domain }}{{ .Path }}">{{ .Domain }}{{ .Path }}</a> <a hx-delete="/api/site/route" hx-vals='{"id": {{ .ID }}}' hx-confirm="Are you sure you want to delete {{ .Domain }}{{ .Path }}?" href="">[delete]</a></li>
+                {{ else }}
+                    <li><span style="color: red; font-style: italic">no routes</span></li>
+                {{ end }}
+                <li><a hx-get="/addRoute" hx-vals='{"slug": "{{ js .Slug }}"}' hx-target="#swapBox" hx-swap="outerHTML" href="">[add route]</a></li>
+            </ul>
+        </li>
+        {{ else }}
+        <li><span style="color: red; font-style: italic">no sites</span></li>
+        {{ end }}
+    </ul>
+    <h2>Create new site</h2>
+    <form hx-post="/api/site">
+        <label for="siteNameInput">Site slug: </label>
+        <input type="text" name="slug" id="siteNameInput">
+        <input type="submit" value="Submit">
+    </form>
+</div>
+</body>
+</html>

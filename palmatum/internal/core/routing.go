@@ -89,14 +89,14 @@ func makeErrorHandler(statusCode int, message string) http.Handler {
 	})
 }
 
-func (c *Core) RouteRequest(rq *http.Request) http.Handler {
+func (c *Core) RouteRequest(rq *http.Request) (http.Handler, error) {
 	c.routeLock.RLock()
 	defer c.routeLock.RUnlock()
 
 	host := strings.ToLower(rq.Host)
 
 	if host == "" {
-		return invalidRequestHandler
+		return invalidRequestHandler, nil
 	}
 
 	c.Logger.Debug("routing request", "host", host, "path", rq.URL.Path, "foundRoutes", c.knownRoutes[host])
@@ -110,23 +110,23 @@ func (c *Core) RouteRequest(rq *http.Request) http.Handler {
 			if h, found := c.handlerCache[v.ContentPath]; found {
 				c.Logger.Debug("handler cache HIT", "content", v.ContentPath)
 				c.handlerCacheLock.Unlock()
-				return h.Handler
+				return h.Handler, nil
 			}
 			c.Logger.Debug("handler cache MISS", "content", v.ContentPath)
 
 			fi, err := os.Stat(p)
 			if err != nil {
-				panic(err)
+				return nil, fmt.Errorf("stat content file: %w", err)
 			}
 
 			f, err := os.Open(p)
 			if err != nil {
-				panic(err)
+				return nil, fmt.Errorf("open content file: %w", err)
 			}
 
 			zr, err := zip.NewReader(f, fi.Size())
 			if err != nil {
-				panic(err)
+				return nil, fmt.Errorf("create ZIP reader: %w", err)
 			}
 
 			fs := http.FileServerFS(zr)
@@ -147,9 +147,9 @@ func (c *Core) RouteRequest(rq *http.Request) http.Handler {
 
 			c.handlerCacheLock.Unlock()
 
-			return handler
+			return handler, nil
 		}
 	}
 
-	return notFoundHandler
+	return notFoundHandler, nil
 }

@@ -1,0 +1,9 @@
+<div>
+    <a href="/">[go back]</a>
+    <h2>Upload to {{ . }}</h2>
+    <form hx-post="/api/site/bundle" hx-vals='{"slug": "{{ js . }}"}'>
+        <label for="siteBundleBox">Site bundle: </label>
+        <input type="file" name="bundle" id="siteBundleBox">
+        <input type="submit" value="Upload">
+    </form>
+</div>

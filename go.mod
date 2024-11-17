@@ -17,4 +17,5 @@ require (
 	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	maragu.dev/gomponents v1.0.0 // indirect
 )
