@@ -1,0 +1,55 @@
+{
+  "logging": {
+    "logs": {
+      "default": {
+        "level": "DEBUG"
+      }
+    }
+  },
+  "apps": {
+    "caddy.filesystems": {
+      "filesystems": [
+        {
+          "name": "zf",
+          "file_system": {
+            "backend": "zipfile",
+            "path": "testdata/site-b.zip"
+          }
+        }
+      ]
+    },
+    "http": {
+      "http_port": 8080,
+      "servers": {
+        "srv0": {
+          "listen": [
+            ":8080"
+          ],
+          "routes": [
+            {
+              "match": [
+                {
+                  "host": [
+                    "localhost"
+                  ]
+                }
+              ],
+              "handle": [
+                {
+                  "handler": "subroute",
+                  "routes": [
+                    {"handle":[{"fs":"zf","handler":"file_server","hide":["testdata/zipfiletest.Caddyfile"]}]}
+                  ]
+                }
+              ],
+              "terminal": true
+            }
+          ],
+          "automatic_https": {
+            "disable": true
+          }
+        }
+      }
+    }
+  }
+}
