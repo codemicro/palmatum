@@ -1,0 +1,18 @@
+{
+    filesystem zf zipfile "testdata/site-b.zip"
+    filesystem zf2 zipfile "testdata/site-a.zip"
+    log {
+        level DEBUG
+    }
+}
+
+http://localhost:8081 {
+    handle_path /yes* {
+        file_server {
+            fs zf
+        }
+    }
+    file_server {
+        fs zf2
+    }
+}

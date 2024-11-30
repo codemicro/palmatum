@@ -130,6 +130,8 @@ func (c *Core) CreateRoute(siteSlug, domain, path string) (*database.RouteModel,
 		if path[0] != '/' {
 			return nil, ErrInvalidPath
 		}
+	} else {
+		path = "/"
 	}
 
 	var id int

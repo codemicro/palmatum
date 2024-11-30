@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/codemicro/palmatum/palmatum/internal/caddyController"
 	"github.com/codemicro/palmatum/palmatum/internal/config"
 	"github.com/codemicro/palmatum/palmatum/internal/core"
 	"github.com/codemicro/palmatum/palmatum/internal/database"
@@ -12,6 +13,8 @@ import (
 	"os"
 )
 
+type server interface{}
+
 func main() {
 	fx.New(
 		fx.Provide(provideLogger),
@@ -20,27 +23,16 @@ func main() {
 		fx.Provide(
 			config.Load,
 			database.New,
+			caddyController.NewController,
 			core.New,
-
-			fx.Annotate(
-				httpsrv.NewManagementServer,
-				fx.ResultTags(`group:"servers"`),
-			),
-
-			fx.Annotate(
-				httpsrv.NewSitesServer,
-				fx.ResultTags(`group:"servers"`),
-			),
+			httpsrv.NewManagementServer,
 		),
 
 		fx.Invoke(
 			func(conf *config.Config) {
 				_ = os.MkdirAll(conf.Platform.SitesDirectory, 0777)
 			},
-			fx.Annotate(
-				func([]*http.Server) {},
-				fx.ParamTags(`group:"servers"`),
-			),
+			func(*http.Server, *caddyController.Controller) {},
 		),
 	).Run()
 }

@@ -37,7 +37,7 @@ func NewManagementServer(lc fx.Lifecycle, args ServerArgs) *http.Server {
 	mux.HandleFunc("GET /uploadSite", handleErrors(args.Logger, mr.uploadSitePartial))
 	mux.HandleFunc("GET /addRoute", handleErrors(args.Logger, mr.addRoutePartial))
 
-	return newServer(args, args.Config.HTTP.ManagementAddress, mux)
+	return newServer(args, args.Config.HTTP.ManagementAddress(), mux)
 }
 
 type managementRoutes struct {

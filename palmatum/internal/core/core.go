@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"github.com/codemicro/palmatum/palmatum/internal/caddyController"
 	"github.com/codemicro/palmatum/palmatum/internal/config"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/fx"
@@ -11,9 +12,10 @@ import (
 )
 
 type Core struct {
-	Config   *config.Config
-	Database *sqlx.DB
-	Logger   *slog.Logger
+	Config          *config.Config
+	Database        *sqlx.DB
+	Logger          *slog.Logger
+	CaddyController *caddyController.Controller
 
 	routeLock   sync.RWMutex
 	knownRoutes map[string][]*routeDestination
@@ -22,11 +24,12 @@ type Core struct {
 	handlerCache     map[string]*cachedHandler
 }
 
-func New(lc fx.Lifecycle, c *config.Config, db *sqlx.DB, logger *slog.Logger) *Core {
+func New(lc fx.Lifecycle, c *config.Config, db *sqlx.DB, logger *slog.Logger, cctrl *caddyController.Controller) *Core {
 	co := &Core{
-		Config:   c,
-		Database: db,
-		Logger:   logger,
+		Config:          c,
+		Database:        db,
+		Logger:          logger,
+		CaddyController: cctrl,
 	}
 
 	lc.Append(fx.Hook{OnStart: func(ctx context.Context) error {
