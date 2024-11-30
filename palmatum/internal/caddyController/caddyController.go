@@ -54,6 +54,7 @@ func (csc *Controller) start(context.Context) error {
 		return err
 	}
 	csc.logger.Info("waiting for Caddy to initialise...")
+	// TODO: Add proper start check
 	time.Sleep(time.Second * 5)
 	return nil
 }
