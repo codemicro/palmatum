@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"github.com/caddyserver/caddy/v2"
+	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	"go4.org/readerutil"
 	"io"
 	"io/fs"
@@ -37,7 +38,10 @@ func (z *ZipFs) Provision(caddy.Context) (err error) {
 }
 
 func (z *ZipFs) Cleanup() error {
-	return z.reader.Close()
+	if z.reader != nil {
+		return z.reader.Close()
+	}
+	return nil
 }
 
 type fileWrapper struct {
@@ -61,4 +65,21 @@ func (z *ZipFs) Open(name string) (fs.File, error) {
 		Seeker: readerutil.NewFakeSeeker(f, fi.Size()),
 		File:   f,
 	}, nil
+}
+
+// UnmarshalCaddyfile unmarshals a zipfile instantiation from a Caddyfile.
+//
+// Example syntax:
+//
+//	filesystem zf zipfile /path/to/my/website.zip
+func (z *ZipFs) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
+	d.Next()
+	var arg string
+	if !d.Args(&arg) {
+		return d.Err("missing ZIP file path")
+	}
+
+	z.SourceZipPath = arg
+
+	return nil
 }
