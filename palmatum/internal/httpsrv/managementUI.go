@@ -40,6 +40,10 @@ func (mr *managementRoutes) index(rw http.ResponseWriter, rq *http.Request) erro
 	return mr.templates.ExecuteTemplate(rw, "index.html", &templateData)
 }
 
+func (mr *managementRoutes) createSitePartial(rw http.ResponseWriter, _ *http.Request) error {
+	return mr.templates.ExecuteTemplate(rw, "createSite.html", nil)
+}
+
 func (mr *managementRoutes) uploadSitePartial(rw http.ResponseWriter, rq *http.Request) error {
 	return mr.templates.ExecuteTemplate(rw, "uploadSite.html", rq.URL.Query().Get("slug"))
 }

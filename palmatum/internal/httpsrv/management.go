@@ -1,6 +1,7 @@
 package httpsrv
 
 import (
+	"embed"
 	_ "embed"
 	"errors"
 	"fmt"
@@ -9,13 +10,17 @@ import (
 	"github.com/codemicro/palmatum/palmatum/internal/database"
 	"go.uber.org/fx"
 	"html/template"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
-func NewManagementServer(lc fx.Lifecycle, args ServerArgs) *http.Server {
+//go:embed static
+var staticAssets embed.FS
+
+func NewManagementServer(lc fx.Lifecycle, args ServerArgs) (*http.Server, error) {
 	mux := http.NewServeMux()
 	mr := managementRoutes{
 		logger: args.Logger,
@@ -34,10 +39,19 @@ func NewManagementServer(lc fx.Lifecycle, args ServerArgs) *http.Server {
 	mux.HandleFunc("DELETE /api/site/route", handleErrors(args.Logger, mr.apiDeleteRoute))
 
 	mux.HandleFunc("GET /{$}", handleErrors(args.Logger, mr.index))
+	mux.HandleFunc("GET /createSite", handleErrors(args.Logger, mr.createSitePartial))
 	mux.HandleFunc("GET /uploadSite", handleErrors(args.Logger, mr.uploadSitePartial))
 	mux.HandleFunc("GET /addRoute", handleErrors(args.Logger, mr.addRoutePartial))
 
-	return newServer(args, args.Config.HTTP.ManagementAddress(), mux)
+	{
+		subfs, err := fs.Sub(staticAssets, "static")
+		if err != nil {
+			return nil, fmt.Errorf("subset embedded static asset filesystem: %w", err)
+		}
+		mux.Handle("GET /", http.FileServer(http.FS(subfs)))
+	}
+
+	return newServer(args, args.Config.HTTP.ManagementAddress(), mux), nil
 }
 
 type managementRoutes struct {

@@ -4,7 +4,8 @@
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Palmatum management portal</title>
-    <link rel="stylesheet" type="text/css" href="https://cdn.tedted.dev/neat/neat.css">
+    <link rel="stylesheet" type="text/css" href="/bootstrap@5.3.3.min.css">
+    <script src="/bootstrap@5.3.3.bundle.min.js" defer></script>
     <script src="https://unpkg.com/htmx.org@1.9.4" defer></script>
     <script defer>
         document.addEventListener("htmx:responseError", (evt) => {
@@ -13,34 +14,49 @@
     </script>
 </head>
 <body hx-encoding="multipart/form-data">
-<h1>Palmatum Management Portal</h1>
-<div id="swapBox">
-    <h2>Active sites</h2>
-    <ul>
-        {{ range .Sites }}
-        <li>{{ .Slug }}
-            <a hx-delete="/api/site" hx-vals='{"slug": "{{ js .Slug }}"}' hx-confirm="Are you sure you want to delete {{ js .Slug }}?" href="">[delete]</a>
-            <a hx-get="/uploadSite" hx-vals='{"slug": "{{ js .Slug }}"}' hx-target="#swapBox" hx-swap="outerHTML" href="">[upload]</a>
-            {{ if eq .ContentPath "" }}<span style="color: red; font-style: italic;">no site uploaded</span>{{ end }}
-            <ul>
-                {{ range .Routes }}
-                    <li><a href="//{{ .Domain }}{{ .Path }}">{{ .Domain }}{{ .Path }}</a> <a hx-delete="/api/site/route" hx-vals='{"id": {{ .ID }}}' hx-confirm="Are you sure you want to delete {{ .Domain }}{{ .Path }}?" href="">[delete]</a></li>
-                {{ else }}
-                    <li><span style="color: red; font-style: italic">no routes</span></li>
-                {{ end }}
-                <li><a hx-get="/addRoute" hx-vals='{"slug": "{{ js .Slug }}"}' hx-target="#swapBox" hx-swap="outerHTML" href="">[add route]</a></li>
-            </ul>
-        </li>
-        {{ else }}
-        <li><span style="color: red; font-style: italic">no sites</span></li>
-        {{ end }}
-    </ul>
-    <h2>Create new site</h2>
-    <form hx-post="/api/site">
-        <label for="siteNameInput">Site slug: </label>
-        <input type="text" name="slug" id="siteNameInput">
-        <input type="submit" value="Submit">
-    </form>
+<div class="container">
+    <h1>Palmatum Management Portal</h1>
+    <div id="swapBox">
+        <h2>Active sites <button class="btn btn-sm btn-primary" hx-get="/createSite" hx-target="#swapBox" hx-swap="outerHTML">+</button></h2>
+
+        <table class="table table-striped table-hover">
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Routes</th>
+                <th scope="col"></th>
+            </tr>
+            {{ range .Sites }}
+                <tr class="{{ if or (eq (len .Routes) 0) (eq (len .ContentPath) 0) }}table-warning{{ end }}">
+                    <th scope="row">{{ .Slug }}
+                        {{ if not .Routes }}
+                            <span class="badge text-bg-danger">No routes set</span>
+                        {{ end }}
+                        {{ if not .ContentPath }}
+                            <span class="badge text-bg-danger">No site uploaded</span>
+                        {{ end }}
+                    </th>
+                    <td>
+                        {{ if .Routes }}
+                            <ul>
+                                {{ range .Routes }}
+                                    <li><a href="//{{ .Domain }}{{ .Path }}" target="_blank">{{ .Domain }}{{ .Path }}</a> <button style="font-size: 0.75em; padding: 0.15em 0.35em;" class="btn btn-outline-danger btn-sm" hx-delete="/api/site/route" hx-vals='{"id": {{ .ID }}}' hx-confirm="Are you sure you want to delete {{ .Domain }}{{ .Path }}?" href="">Delete</button></li>
+                                {{ end }}
+                            </ul>
+                        {{ end }}
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-secondary" hx-get="/addRoute" hx-vals='{"slug": "{{ js .Slug }}"}' hx-target="#swapBox" hx-swap="outerHTML">Add route</button>
+                            <button class="btn btn-sm btn-primary" hx-get="/uploadSite" hx-vals='{"slug": "{{ js .Slug }}"}' hx-target="#swapBox" hx-swap="outerHTML">Upload bundle</button>
+                            <button class="btn btn-sm btn-outline-danger" hx-delete="/api/site" hx-vals='{"slug": "{{ js .Slug }}"}' hx-confirm="Are you sure you want to delete {{ js .Slug }}?">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            {{ else }}
+                TODO: no sites
+            {{ end }}
+        </table>
+    </div>
 </div>
 </body>
 </html>
