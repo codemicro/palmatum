@@ -42,6 +42,7 @@ func NewManagementServer(lc fx.Lifecycle, args ServerArgs) (*http.Server, error)
 	mux.HandleFunc("GET /uploadSite", handleErrors(args.Logger, mr.uploadSitePartial))
 	mux.HandleFunc("GET /deleteSite", handleErrors(args.Logger, mr.deleteSitePartial))
 	mux.HandleFunc("GET /addRoute", handleErrors(args.Logger, mr.addRoutePartial))
+	mux.HandleFunc("GET /deleteRoute", handleErrors(args.Logger, mr.deleteRoutePartial))
 
 	{
 		subfs, err := fs.Sub(staticAssets, "static")

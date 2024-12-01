@@ -47,7 +47,7 @@
                             {{ if .Routes }}
                                 <ul>
                                     {{ range .Routes }}
-                                        <li><a href="//{{ .Domain }}{{ .Path }}" target="_blank">{{ .Domain }}{{ .Path }}</a> <button style="font-size: 0.75em; padding: 0.15em 0.35em;" class="btn btn-outline-danger btn-sm" hx-delete="/api/site/route" hx-vals='{"id": {{ .ID }}}' hx-confirm="Are you sure you want to delete {{ .Domain }}{{ .Path }}?" href="">Delete</button></li>
+                                        <li><a href="//{{ .Domain }}{{ .Path }}" target="_blank">{{ .Domain }}{{ .Path }}</a> <button style="font-size: 0.75em; padding: 0.15em 0.35em;" class="btn btn-outline-danger btn-sm" hx-get="/deleteRoute" hx-target="#modal-target" hx-vals='{"id": {{ .ID }}, "domain": "{{ js .Domain }}", "path": "{{ js .Path }}"}'>Delete</button></li>
                                     {{ end }}
                                 </ul>
                             {{ end }}

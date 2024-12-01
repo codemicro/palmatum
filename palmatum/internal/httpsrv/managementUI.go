@@ -59,3 +59,11 @@ func (mr *managementRoutes) addRoutePartial(rw http.ResponseWriter, rq *http.Req
 	rw.Header().Set("Hx-Trigger-After-Swap", "showModal")
 	return mr.templates.ExecuteTemplate(rw, "addRoute.html", rq.URL.Query().Get("slug"))
 }
+
+func (mr *managementRoutes) deleteRoutePartial(rw http.ResponseWriter, rq *http.Request) error {
+	rw.Header().Set("Hx-Trigger-After-Swap", "showModal")
+	return mr.templates.ExecuteTemplate(rw, "deleteRoute.html", struct {
+		ID    string
+		Route string
+	}{ID: rq.URL.Query().Get("id"), Route: rq.URL.Query().Get("domain") + rq.URL.Query().Get("path")})
+}
