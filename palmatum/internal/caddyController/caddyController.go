@@ -9,6 +9,7 @@ import (
 	"go.uber.org/fx"
 	"io"
 	"log/slog"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -53,9 +54,32 @@ func (csc *Controller) start(context.Context) error {
 	if err := csc.cmd.Start(); err != nil {
 		return err
 	}
-	csc.logger.Info("waiting for Caddy to initialise...")
-	// TODO: Add proper start check
-	time.Sleep(time.Second * 5)
+
+	var i int
+	for ; i < 5; i += 1 {
+		secs := int(math.Pow(2, float64(i)))
+		csc.logger.Info("waiting for Caddy to be ready...", "seconds", secs)
+
+		time.Sleep(time.Second * time.Duration(secs))
+
+		resp, err := csc.doApiRequest("GET", "/config", "", nil)
+
+		var status int
+		if resp != nil {
+			status = resp.StatusCode
+		}
+
+		if err == nil && status/100 == 2 {
+			break
+		}
+
+		csc.logger.Debug("Caddy not ready", "error", err, "status", status)
+	}
+
+	if i == 5 {
+		return errors.New("failed to start Caddy")
+	}
+
 	return nil
 }
 
