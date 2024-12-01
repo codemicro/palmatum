@@ -19,8 +19,8 @@ func (rs RouteSpec) sortValues() {
 	for _, v := range rs {
 		// sort longest path first and hence match longest path first
 		slices.SortFunc(v, func(a, b *RouteDestination) int {
-			sa := len(strings.Split(a.Path, "/"))
-			sb := len(strings.Split(b.Path, "/"))
+			sa := len(strings.Split(strings.TrimRight(a.Path, "/"), "/"))
+			sb := len(strings.Split(strings.TrimRight(b.Path, "/"), "/"))
 
 			if sa < sb {
 				return 1

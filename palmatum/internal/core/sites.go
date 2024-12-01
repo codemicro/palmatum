@@ -97,6 +97,11 @@ func (c *Core) UpdateSite(s *database.SiteModel) error {
 	if err != nil {
 		return fmt.Errorf("call database: %w", err)
 	}
+
+	if err := c.BuildKnownRoutes(); err != nil {
+		return fmt.Errorf("rebuild known routes: %w", err)
+	}
+
 	return nil
 }
 
