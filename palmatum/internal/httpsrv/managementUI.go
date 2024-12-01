@@ -50,6 +50,11 @@ func (mr *managementRoutes) uploadSitePartial(rw http.ResponseWriter, rq *http.R
 	return mr.templates.ExecuteTemplate(rw, "uploadSite.html", rq.URL.Query().Get("slug"))
 }
 
+func (mr *managementRoutes) deleteSitePartial(rw http.ResponseWriter, rq *http.Request) error {
+	rw.Header().Set("Hx-Trigger-After-Swap", "showModal")
+	return mr.templates.ExecuteTemplate(rw, "deleteSite.html", rq.URL.Query().Get("slug"))
+}
+
 func (mr *managementRoutes) addRoutePartial(rw http.ResponseWriter, rq *http.Request) error {
 	rw.Header().Set("Hx-Trigger-After-Swap", "showModal")
 	return mr.templates.ExecuteTemplate(rw, "addRoute.html", rq.URL.Query().Get("slug"))

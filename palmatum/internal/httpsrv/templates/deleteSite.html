@@ -6,18 +6,11 @@
         </div>
         <form hx-delete="/api/site" hx-vals='{"slug": "{{ js . }}"}'>
             <div class="modal-body">
-                <div class="mb-3">
-                    <label for="domainBox">Domain (required)</label>
-                    <input type="text" name="domain" id="domainBox" class="form-control" placeholder="Domain">
-                </div>
-                <div class="mb-3">
-                    <label for="pathBox">Path</label>
-                    <input type="text" name="path" placeholder="/" id="pathBox" class="form-control">
-                </div>
+                <p><span class="text-danger-emphasis fw-bold">Are you sure?</span> This site will be irrevocably deleted, as well as all the routes assigned to it.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Create</button>
+                <button type="submit" class="btn btn-danger">Delete</button>
             </div>
         </form>
     </div>
