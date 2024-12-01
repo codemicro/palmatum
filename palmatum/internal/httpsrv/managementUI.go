@@ -41,13 +41,16 @@ func (mr *managementRoutes) index(rw http.ResponseWriter, rq *http.Request) erro
 }
 
 func (mr *managementRoutes) createSitePartial(rw http.ResponseWriter, _ *http.Request) error {
+	rw.Header().Set("Hx-Trigger-After-Swap", "showModal")
 	return mr.templates.ExecuteTemplate(rw, "createSite.html", nil)
 }
 
 func (mr *managementRoutes) uploadSitePartial(rw http.ResponseWriter, rq *http.Request) error {
+	rw.Header().Set("Hx-Trigger-After-Swap", "showModal")
 	return mr.templates.ExecuteTemplate(rw, "uploadSite.html", rq.URL.Query().Get("slug"))
 }
 
 func (mr *managementRoutes) addRoutePartial(rw http.ResponseWriter, rq *http.Request) error {
+	rw.Header().Set("Hx-Trigger-After-Swap", "showModal")
 	return mr.templates.ExecuteTemplate(rw, "addRoute.html", rq.URL.Query().Get("slug"))
 }

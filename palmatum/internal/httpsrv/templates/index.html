@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Palmatum management portal</title>
     <link rel="stylesheet" type="text/css" href="/bootstrap@5.3.3.min.css">
-    <script src="/bootstrap@5.3.3.bundle.min.js" defer></script>
+    <script src="/bootstrap@5.3.3.bundle.min.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.4" defer></script>
     <script defer>
         document.addEventListener("htmx:responseError", (evt) => {
@@ -14,49 +14,72 @@
     </script>
 </head>
 <body hx-encoding="multipart/form-data">
-<div class="container">
-    <h1>Palmatum Management Portal</h1>
-    <div id="swapBox">
-        <h2>Active sites <button class="btn btn-sm btn-primary" hx-get="/createSite" hx-target="#swapBox" hx-swap="outerHTML">+</button></h2>
 
-        <table class="table table-striped table-hover">
-            <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Routes</th>
-                <th scope="col"></th>
-            </tr>
-            {{ range .Sites }}
-                <tr class="{{ if or (eq (len .Routes) 0) (eq (len .ContentPath) 0) }}table-warning{{ end }}">
-                    <th scope="row">{{ .Slug }}
-                        {{ if not .Routes }}
-                            <span class="badge text-bg-danger">No routes set</span>
-                        {{ end }}
-                        {{ if not .ContentPath }}
-                            <span class="badge text-bg-danger">No site uploaded</span>
-                        {{ end }}
-                    </th>
-                    <td>
-                        {{ if .Routes }}
-                            <ul>
-                                {{ range .Routes }}
-                                    <li><a href="//{{ .Domain }}{{ .Path }}" target="_blank">{{ .Domain }}{{ .Path }}</a> <button style="font-size: 0.75em; padding: 0.15em 0.35em;" class="btn btn-outline-danger btn-sm" hx-delete="/api/site/route" hx-vals='{"id": {{ .ID }}}' hx-confirm="Are you sure you want to delete {{ .Domain }}{{ .Path }}?" href="">Delete</button></li>
-                                {{ end }}
-                            </ul>
-                        {{ end }}
-                    </td>
-                    <td>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-secondary" hx-get="/addRoute" hx-vals='{"slug": "{{ js .Slug }}"}' hx-target="#swapBox" hx-swap="outerHTML">Add route</button>
-                            <button class="btn btn-sm btn-primary" hx-get="/uploadSite" hx-vals='{"slug": "{{ js .Slug }}"}' hx-target="#swapBox" hx-swap="outerHTML">Upload bundle</button>
-                            <button class="btn btn-sm btn-outline-danger" hx-delete="/api/site" hx-vals='{"slug": "{{ js .Slug }}"}' hx-confirm="Are you sure you want to delete {{ js .Slug }}?">Delete</button>
-                        </div>
-                    </td>
+<nav class="navbar bg-body-tertiary border-bottom border-3" data-bs-theme="dark" style="border-color: #df3062 !important;">
+    <div class="container">
+        <a class="navbar-brand" href="/">Palmatum</a>
+    </div>
+</nav>
+
+
+<div class="container pt-3">
+    <div id="swapBox">
+        <h1 class="pb-1">Active sites <button class="btn btn-sm btn-primary" hx-get="/createSite" hx-target="#modal-target">+</button></h1>
+
+        {{ if .Sites }}
+            <table class="table table-striped table-hover">
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Routes</th>
+                    <th scope="col"></th>
                 </tr>
-            {{ else }}
-                TODO: no sites
-            {{ end }}
-        </table>
+                {{ range .Sites }}
+                    <tr class="{{ if or (eq (len .Routes) 0) (eq (len .ContentPath) 0) }}table-warning{{ end }}">
+                        <th scope="row">{{ .Slug }}
+                            {{ if not .Routes }}
+                                <span class="badge text-bg-danger">No routes set</span>
+                            {{ end }}
+                            {{ if not .ContentPath }}
+                                <span class="badge text-bg-danger">No site uploaded</span>
+                            {{ end }}
+                        </th>
+                        <td>
+                            {{ if .Routes }}
+                                <ul>
+                                    {{ range .Routes }}
+                                        <li><a href="//{{ .Domain }}{{ .Path }}" target="_blank">{{ .Domain }}{{ .Path }}</a> <button style="font-size: 0.75em; padding: 0.15em 0.35em;" class="btn btn-outline-danger btn-sm" hx-delete="/api/site/route" hx-vals='{"id": {{ .ID }}}' hx-confirm="Are you sure you want to delete {{ .Domain }}{{ .Path }}?" href="">Delete</button></li>
+                                    {{ end }}
+                                </ul>
+                            {{ end }}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-secondary" hx-get="/addRoute" hx-vals='{"slug": "{{ js .Slug }}"}' hx-target="#modal-target">Add route</button>
+                                <button class="btn btn-sm btn-primary" hx-get="/uploadSite" hx-vals='{"slug": "{{ js .Slug }}"}' hx-target="#modal-target">Upload bundle</button>
+                                <button class="btn btn-sm btn-outline-danger" hx-delete="/api/site" hx-vals='{"slug": "{{ js .Slug }}"}' hx-confirm="Are you sure you want to delete {{ js .Slug }}?">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                {{ end }}
+            </table>
+        {{ else }}
+            <div class="alert alert-danger" role="alert">
+                <div><b>There are no active sites!</b> Click the plus above to add one.</div>
+            </div>
+        {{ end }}
     </div>
 </div>
+
+<div class="modal fade" id="modal-target" tabindex="-1" aria-hidden="true"></div>
+<script defer>
+    let modal;
+    document.addEventListener("showModal", () => {
+        modal = new bootstrap.Modal("#modal-target");
+        modal.show();
+    });
+    document.addEventListener("hidden.bs.modal", () => {
+        modal.dispose();
+    })
+</script>
 </body>
 </html>
