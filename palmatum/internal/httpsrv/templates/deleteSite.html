@@ -1,16 +1,16 @@
 <div class="modal-dialog">
     <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header bg-danger text-white border-danger">
             <h1 class="modal-title fs-5">Delete {{ . }}?</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form hx-delete="/api/site" hx-vals='{"slug": "{{ js . }}"}'>
-            <div class="modal-body">
+            <div class="modal-body bg-danger-subtle">
                 <p><span class="text-danger-emphasis fw-bold">Are you sure?</span> This site will be irrevocably deleted, as well as all the routes assigned to it.</p>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer bg-danger-subtle border-danger">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-danger">Delete</button>
+                <button type="submit" class="btn btn-outline-danger">Delete</button>
             </div>
         </form>
     </div>
