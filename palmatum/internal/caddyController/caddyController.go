@@ -62,7 +62,7 @@ func (csc *Controller) start(context.Context) error {
 
 		time.Sleep(time.Second * time.Duration(secs))
 
-		resp, err := csc.doApiRequest("GET", "/config", "", nil)
+		resp, err := csc.doApiRequest("GET", "/config/", "", nil)
 
 		var status int
 		if resp != nil {
@@ -169,6 +169,10 @@ func (csc *Controller) buildCaddyConfig(kr RouteSpec) []byte {
 `)
 
 		for _, route := range routes {
+			if route.ContentPath == "" {
+				continue
+			}
+
 			var fsno int
 			if v, found := filesystems[route.ContentPath]; found {
 				fsno = v
@@ -200,9 +204,23 @@ func (csc *Controller) buildCaddyConfig(kr RouteSpec) []byte {
 	var gsb bytes.Buffer
 
 	gsb.WriteString(`{
+auto_https off
 admin `)
 	gsb.WriteString(csc.adminApiSocket)
-	gsb.WriteRune('\n')
+	gsb.WriteString("\nhttp_port ")
+	gsb.WriteString(strconv.Itoa(csc.config.HTTP.SitesPort))
+	gsb.WriteString("\ndefault_bind ")
+	gsb.WriteString(csc.config.HTTP.SitesHost)
+	gsb.WriteString("\nlog {\nlevel ")
+
+	if csc.config.Debug {
+		gsb.WriteString("DEBUG")
+	} else {
+		gsb.WriteString("WARN")
+	}
+
+	gsb.WriteString("\n}\n")
+
 	for zipfilePath, val := range filesystems {
 		gsb.WriteString("filesystem ")
 		gsb.WriteString(strconv.Itoa(val))
