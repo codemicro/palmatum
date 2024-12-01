@@ -92,6 +92,40 @@ func (c *Core) DeleteSite(siteSlug string) error {
 	return nil
 }
 
+func (c *Core) UpdateContentPath(siteSlug string, contentPath string) error {
+	tx, err := c.Database.Beginx()
+	if err != nil {
+		return fmt.Errorf("begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	var oldContentPath string
+	if err := tx.QueryRow("select content_path from sites where slug=?", siteSlug).Scan(&oldContentPath); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("get old content path: %w", err)
+	}
+
+	_, err = tx.Exec(`UPDATE sites SET content_path=? WHERE slug = ?`, contentPath, siteSlug)
+	if err != nil {
+		return fmt.Errorf("update content path: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction: %w", err)
+	}
+
+	if err := c.BuildKnownRoutes(); err != nil {
+		return fmt.Errorf("rebuild known routes: %w", err)
+	}
+
+	if oldContentPath != "" {
+		if err := os.Remove(c.getPathOnDisk(oldContentPath)); err != nil {
+			c.Logger.Warn("unable to delete obsolete content", "error", err, "path", c.getPathOnDisk(oldContentPath))
+		}
+	}
+
+	return nil
+}
+
 func (c *Core) UpdateSite(s *database.SiteModel) error {
 	_, err := c.Database.Exec(`UPDATE sites SET content_path=? WHERE slug = ?`, s.ContentPath, s.Slug)
 	if err != nil {
@@ -101,7 +135,6 @@ func (c *Core) UpdateSite(s *database.SiteModel) error {
 	if err := c.BuildKnownRoutes(); err != nil {
 		return fmt.Errorf("rebuild known routes: %w", err)
 	}
-
 	return nil
 }
 

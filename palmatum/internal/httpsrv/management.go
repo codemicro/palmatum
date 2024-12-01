@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/codemicro/palmatum/palmatum/internal/config"
 	"github.com/codemicro/palmatum/palmatum/internal/core"
-	"github.com/codemicro/palmatum/palmatum/internal/database"
 	"go.uber.org/fx"
 	"html/template"
 	"io/fs"
@@ -140,12 +139,7 @@ func (mr *managementRoutes) apiUploadSiteBundle(rw http.ResponseWriter, rq *http
 		return fmt.Errorf("ingest site archive site archive: %w", err)
 	}
 
-	_ = contentPath
-
-	if err := mr.core.UpdateSite(&database.SiteModel{
-		Slug:        siteSlug,
-		ContentPath: contentPath,
-	}); err != nil {
+	if err := mr.core.UpdateContentPath(siteSlug, contentPath); err != nil {
 		return fmt.Errorf("update site: %w", err)
 	}
 
