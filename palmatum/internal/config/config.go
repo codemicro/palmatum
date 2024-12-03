@@ -71,7 +71,7 @@ func Load() (*Config, error) {
 		Platform: &Platform{
 			SitesDirectory:         cl.Get("platform.sitesDirectory").Required().AsString(),
 			MaxUploadSizeMegabytes: cl.Get("platform.maxUploadSizeMegabytes").WithDefault(512).AsInt(),
-			CaddyExecutablePath:    cl.Get("platform.caddyExecutablePath").WithDefault(path.Join(exePath, "caddy")).AsString(),
+			CaddyExecutablePath:    cl.Get("platform.caddyExecutablePath").WithDefault(path.Join(path.Dir(exePath), "caddy")).AsString(),
 		},
 	}
 
