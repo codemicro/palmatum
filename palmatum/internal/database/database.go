@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/codemicro/palmatum/palmatum/internal/config"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/config"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/fx"

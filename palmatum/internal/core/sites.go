@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/codemicro/palmatum/palmatum/internal/database"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/database"
 	"github.com/mattn/go-sqlite3"
 	"os"
 	"regexp"

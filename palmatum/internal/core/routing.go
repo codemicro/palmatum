@@ -2,7 +2,7 @@ package core
 
 import (
 	"fmt"
-	"github.com/codemicro/palmatum/palmatum/internal/caddyController"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/caddyController"
 	"net/http"
 	"os"
 	"strings"

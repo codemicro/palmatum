@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/codemicro/palmatum/palmatum/internal/caddyController"
-	"github.com/codemicro/palmatum/palmatum/internal/config"
-	"github.com/codemicro/palmatum/palmatum/internal/core"
-	"github.com/codemicro/palmatum/palmatum/internal/database"
-	"github.com/codemicro/palmatum/palmatum/internal/httpsrv"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/caddyController"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/config"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/core"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/database"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/httpsrv"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"log/slog"

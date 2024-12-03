@@ -2,8 +2,8 @@ package core
 
 import (
 	"context"
-	"github.com/codemicro/palmatum/palmatum/internal/caddyController"
-	"github.com/codemicro/palmatum/palmatum/internal/config"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/caddyController"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/config"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/fx"
 	"log/slog"

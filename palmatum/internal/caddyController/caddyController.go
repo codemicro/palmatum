@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/codemicro/palmatum/palmatum/internal/config"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/config"
 	"go.uber.org/fx"
 	"io"
 	"log/slog"

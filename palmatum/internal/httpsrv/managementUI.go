@@ -4,7 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"github.com/codemicro/palmatum/palmatum/internal/database"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/database"
 	"html/template"
 	"io/fs"
 	"net/http"

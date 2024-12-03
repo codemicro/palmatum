@@ -2,8 +2,8 @@ package httpsrv
 
 import (
 	"context"
-	"github.com/codemicro/palmatum/palmatum/internal/config"
-	"github.com/codemicro/palmatum/palmatum/internal/core"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/config"
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/core"
 	"go.uber.org/fx"
 	"log/slog"
 	"net/http"
