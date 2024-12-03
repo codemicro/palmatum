@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"go.akpain.net/cfger"
+	"os"
+	"path"
 )
 
 type HTTP struct {
@@ -38,6 +40,18 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
+	exePath, err := os.Executable()
+	if err != nil {
+		// If we can't get our own executable location, then we effectively drop back to looking in the current working
+		// directory by setting this to an empty SIM.
+		//
+		// I did check and the empty string interacts nicely with path.Join and won't add random extra copies of /
+		//
+		// We're adding the empty string just to be safe :)
+		_, _ = fmt.Fprintf(os.Stderr, "Warning: unable to determine own executable path: %v", err)
+		exePath = ""
+	}
+
 	cl := new(cfger.ConfigLoader)
 	if err := cl.Load("config.yml"); err != nil {
 		return nil, err
@@ -57,7 +71,7 @@ func Load() (*Config, error) {
 		Platform: &Platform{
 			SitesDirectory:         cl.Get("platform.sitesDirectory").Required().AsString(),
 			MaxUploadSizeMegabytes: cl.Get("platform.maxUploadSizeMegabytes").WithDefault(512).AsInt(),
-			CaddyExecutablePath:    cl.Get("platform.caddyExecutablePath").WithDefault("caddy").AsString(),
+			CaddyExecutablePath:    cl.Get("platform.caddyExecutablePath").WithDefault(path.Join(exePath, "caddy")).AsString(),
 		},
 	}
 
