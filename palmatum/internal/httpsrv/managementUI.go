@@ -4,11 +4,13 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"git.tdpain.net/codemicro/palmatum/palmatum/internal/database"
 	"html/template"
 	"io/fs"
 	"net/http"
+	"slices"
 	"time"
+
+	"git.tdpain.net/codemicro/palmatum/palmatum/internal/database"
 )
 
 //go:embed templates/*
@@ -44,8 +46,18 @@ func (mr *managementRoutes) index(rw http.ResponseWriter, rq *http.Request) erro
 	if err != nil {
 		return fmt.Errorf("get sites with routes: %w", err)
 	}
+	
+	slices.SortFunc(s, func(a, b *database.SiteModel) int {
+		if a.LastUpdatedAt < b.LastUpdatedAt {
+			return -1
+		} else if a.LastUpdatedAt > b.LastUpdatedAt {
+			return 1
+		}
+		return 0
+	})
+	
 	templateData.Sites = s
-
+	
 	return mr.templates.ExecuteTemplate(rw, "index.html", &templateData)
 }
 
