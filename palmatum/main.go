@@ -13,8 +13,6 @@ import (
 	"os"
 )
 
-type server interface{}
-
 func main() {
 	fx.New(
 		fx.Provide(provideLogger),
@@ -32,7 +30,9 @@ func main() {
 			func(conf *config.Config) {
 				_ = os.MkdirAll(conf.Platform.SitesDirectory, 0777)
 			},
-			func(*http.Server, *caddyController.Controller) {},
+			func(log *slog.Logger, _ *http.Server, _ *caddyController.Controller) {
+				log.Info("Palmatum has started")
+			},
 		),
 	).Run()
 }
