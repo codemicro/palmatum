@@ -5,14 +5,23 @@ import (
 	"embed"
 	"fmt"
 	"github.com/codemicro/palmatum/palmatum/internal/database"
+	"html/template"
 	"io/fs"
 	"net/http"
+	"time"
 )
 
 //go:embed templates/*
 var managementTemplateSource embed.FS
 
 func (mr *managementRoutes) initManagementTemplates(_ context.Context) error {
+	mr.templates = template.New("")
+	mr.templates.Funcs(map[string]any{
+		"fmtTime": func(ti int64) string {
+			return time.Unix(ti, 0).Format("2006-01-02 15:04")
+		},
+	})
+
 	f, err := fs.Sub(fs.FS(managementTemplateSource), "templates")
 	if err != nil {
 		return fmt.Errorf("subset filesystem: %w", err)

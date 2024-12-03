@@ -31,18 +31,12 @@
                 <tr>
                     <th scope="col">Name</th>
                     <th scope="col">Routes</th>
+                    <th scope="col">Last Updated</th>
                     <th scope="col"></th>
                 </tr>
                 {{ range .Sites }}
                     <tr class="{{ if or (eq (len .Routes) 0) (eq (len .ContentPath) 0) }}table-warning{{ end }}">
-                        <th scope="row">{{ .Slug }}
-                            {{ if not .Routes }}
-                                <span class="badge text-bg-danger">No routes set</span>
-                            {{ end }}
-                            {{ if not .ContentPath }}
-                                <span class="badge text-bg-danger">No site uploaded</span>
-                            {{ end }}
-                        </th>
+                        <th scope="row">{{ .Slug }}</th>
                         <td>
                             {{ if .Routes }}
                                 <ul>
@@ -50,6 +44,15 @@
                                         <li><a href="//{{ .Domain }}{{ .Path }}" target="_blank">{{ .Domain }}{{ .Path }}</a> <button style="font-size: 0.75em; padding: 0.15em 0.35em;" class="btn btn-outline-danger btn-sm" hx-get="/deleteRoute" hx-target="#modal-target" hx-vals='{"id": {{ .ID }}, "domain": "{{ js .Domain }}", "path": "{{ js .Path }}"}'>Delete</button></li>
                                     {{ end }}
                                 </ul>
+                            {{ else }}
+                                <span class="badge text-bg-danger">No routes set</span>
+                            {{ end }}
+                        </td>
+                        <td>
+                            {{ if ne .LastUpdatedAt 0 }}
+                                {{ fmtTime .LastUpdatedAt }}
+                            {{ else }}
+                                <span class="badge text-bg-danger">No site uploaded</span>
                             {{ end }}
                         </td>
                         <td>
