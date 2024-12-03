@@ -49,9 +49,9 @@ func (mr *managementRoutes) index(rw http.ResponseWriter, rq *http.Request) erro
 	
 	slices.SortFunc(s, func(a, b *database.SiteModel) int {
 		if a.LastUpdatedAt < b.LastUpdatedAt {
-			return -1
-		} else if a.LastUpdatedAt > b.LastUpdatedAt {
 			return 1
+		} else if a.LastUpdatedAt > b.LastUpdatedAt {
+			return -1
 		}
 		return 0
 	})
