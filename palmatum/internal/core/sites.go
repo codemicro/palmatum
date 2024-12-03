@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type Error struct {
@@ -104,7 +105,7 @@ func (c *Core) UpdateContentPath(siteSlug string, contentPath string) error {
 		return fmt.Errorf("get old content path: %w", err)
 	}
 
-	_, err = tx.Exec(`UPDATE sites SET content_path=? WHERE slug = ?`, contentPath, siteSlug)
+	_, err = tx.Exec(`UPDATE sites SET content_path=?, last_updated_at=? WHERE slug = ?`, contentPath, time.Now().Unix(), siteSlug)
 	if err != nil {
 		return fmt.Errorf("update content path: %w", err)
 	}
@@ -123,18 +124,6 @@ func (c *Core) UpdateContentPath(siteSlug string, contentPath string) error {
 		}
 	}
 
-	return nil
-}
-
-func (c *Core) UpdateSite(s *database.SiteModel) error {
-	_, err := c.Database.Exec(`UPDATE sites SET content_path=? WHERE slug = ?`, s.ContentPath, s.Slug)
-	if err != nil {
-		return fmt.Errorf("call database: %w", err)
-	}
-
-	if err := c.BuildKnownRoutes(); err != nil {
-		return fmt.Errorf("rebuild known routes: %w", err)
-	}
 	return nil
 }
 

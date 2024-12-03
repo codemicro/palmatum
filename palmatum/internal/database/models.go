@@ -7,33 +7,24 @@ import (
 )
 
 type SiteModel struct {
-	Slug        string `db:"slug"` // primary key
-	ContentPath string `db:"content_path"`
+	Slug          string `db:"slug"` // primary key
+	ContentPath   string `db:"content_path"`
+	LastUpdatedAt int64  `db:"last_updated_at"`
 
 	Routes []*RouteModel `db:"-"`
 }
 
 func GetSite(db sqlx.Queryer, slug string) (*SiteModel, error) {
 	res := new(SiteModel)
-	if err := db.QueryRowx(`SELECT "slug", "content_path" from sites WHERE "slug" = ?`, slug).StructScan(res); err != nil {
+	if err := db.QueryRowx(`SELECT * from sites WHERE "slug" = ?`, slug).StructScan(res); err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func InsertSite(db sqlx.Ext, site *SiteModel) error {
-	_, err := sqlx.NamedExec(db, `INSERT INTO sites("slug", "content_path") VALUES(:slug, :content_path)`, site)
-	return err
-}
-
-func UpdateSite(db sqlx.Ext, site *SiteModel) error {
-	_, err := sqlx.NamedExec(db, `UPDATE sites SET content_path = :content_path WHERE slug = :slug`, site)
-	return err
-}
-
 func GetSites(db sqlx.Queryer) ([]*SiteModel, error) {
 	var res []*SiteModel
-	if err := sqlx.Select(db, &res, "SELECT slug, content_path FROM sites"); err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err := sqlx.Select(db, &res, "SELECT * FROM sites"); err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 	return res, nil
@@ -67,17 +58,4 @@ type RouteModel struct {
 	Site   string `db:"site"`
 	Domain string `db:"domain"`
 	Path   string `db:"path"`
-}
-
-func InsertRoute(db sqlx.Ext, route *RouteModel) error {
-	q, v, err := sqlx.Named(`INSERT INTO routes("site", "domain", path) VALUES(:site, :domain, :path) RETURNING id`, route)
-	if err != nil {
-		return err
-	}
-	return db.QueryRowx(q, v...).Scan(&route.ID)
-}
-
-func DeleteRoute(db sqlx.Ext, route *RouteModel) error {
-	_, err := sqlx.NamedExec(db, `DELETE FROM routes WHERE id = :id`, route)
-	return err
 }

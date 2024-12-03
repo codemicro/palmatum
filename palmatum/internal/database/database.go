@@ -40,7 +40,8 @@ func New(lc fx.Lifecycle, conf *config.Config) (*sqlx.DB, error) {
 				case 0:
 					_, err = db.Exec(`CREATE TABLE sites(
 						"slug" varchar primary key,
-						"content_path" varchar default ''
+						"content_path" varchar default '',
+                  		"last_updated_at" integer default 0
 					)`)
 					if err != nil {
 						return fmt.Errorf("create sites table: %w", err)
@@ -51,7 +52,7 @@ func New(lc fx.Lifecycle, conf *config.Config) (*sqlx.DB, error) {
 						"site" varchar not null,
 						"domain" varchar not null,
 						"path" varchar default '/',
-						
+												
 						foreign key (site) references sites(slug),
 						unique (domain, path)
 					)`)
